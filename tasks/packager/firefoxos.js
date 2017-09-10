@@ -50,7 +50,7 @@ function generateTizenPackageID() {
     return Math.random().toString(36).substr(2, 10);
 }
 
-function getValidTizenConfData(configPath) {
+function getValidFirefoxOSConfData(configPath) {
     console.log(configPath);
     if (!(fs.existsSync(configPath))) {
         // userconf.json is not exists
@@ -58,34 +58,31 @@ function getValidTizenConfData(configPath) {
     }
     // userconf.json is already exists
     var userConfData = JSON.parse(fs.readFileSync(configPath));
+    //console.log("test ahmed : "+ JSON.stringify(userConfData));
 
-    if (!(userConfData.hasOwnProperty('tizen'))) {
-        // userconf.json doesn't have tizen data
+    if (!(userConfData.hasOwnProperty('firefoxos'))) {
+        // userconf.json doesn't have firefoxos data
         return null;
     }
-    var tizenData = userConfData.tizen;
-    if (typeof tizenData.name !== 'string' || tizenData.name.length <= 0) {
+    var firefoxosData = userConfData.firefoxos;
+    if (typeof firefoxosData.name !== 'string' || firefoxosData.name.length <= 0) {
         // name is invalid
         return null;
     }
-    if (typeof tizenData.packageid !== 'string' || tizenData.packageid.length !== 10) {
-        // packageid is invalid
-        return null;
-    }
-    if (typeof tizenData.iconpath !== 'string' || tizenData.iconpath.length <= 0) {
+    if (typeof firefoxosData.iconpath !== 'string' || firefoxosData.iconpath.length <= 0) {
         // iconpath is invalid
         return null;
     }
-    if (!validateTizenVersion(tizenData.version)) {
+    if (!validateFirefoxOSVersion(firefoxosData.version)) {
         // version is invalid
         return null;
     }
     // description is not mendatory
 
-    return tizenData;
+    return firefoxosData;
 }
 
-function validateTizenVersion(version) {
+function validateFirefoxOSVersion(version) {
     var tmp = version.split('.'),
         i;
     if (tmp.length !== 3) {
@@ -104,7 +101,6 @@ function confirmUseExistingData(userData, callback) {
     console.log('');
     console.log('      > [ Stored Information ]');
     console.log('      > name        : ' + userData.name);
-    console.log('      > package ID  : ' + userData.packageid);
     console.log('      > version     : ' + userData.version);
     console.log('      > description : ' + userData.description);
 
@@ -130,7 +126,7 @@ function askUserData(cordovaConf, callback, versionOnly, userData) {
             message: 'Current version is ' + curVer + '. Application version: ',
             default: updateVer,
             validate: function(input) {
-                return /\d.\d.\d/.test(input) ? true : 'invalid version string for tizen platform';
+                return /\d.\d.\d/.test(input) ? true : 'invalid version string for firefoxos platform';
             }
         }];
         inquirer.prompt(ask, function(answers) {
@@ -144,37 +140,69 @@ function askUserData(cordovaConf, callback, versionOnly, userData) {
             message: 'What\'s the application\'s name?',
             default: cordovaConf.name,
             validate: function(input) {
-                return /^[a-zA-Z][^~!\.\;\\\/\|\"\'@\#$%<>^&*\()\-=+_\’\n\t\s]*$/.test(input) ? true : 'invalid name for tizen platform';
+                return /^[a-zA-Z0-9]+$/.test(input) ? true : 'invalid name for firefoxos platform'
             }
-        }, {
+        },{
             type: 'input',
-            name: 'packageid',
-            message: 'Package Id (Valid RegExp: [0-9a-zA-Z]{10})',
-            default: generateTizenPackageID(),
-            validate: function(input) {
-                return /[0-9a-zA-Z]{10}/.test(input) ? true : 'invalid id string for tizen platform';
-            }
+            name: 'description',
+            message: 'Application Description',
+            default: utils.trim(cordovaConf.description)
         }, {
             type: 'input',
             name: 'version',
             message: 'Application Version (Valid RegExp: /\d./\d./\d)',
             default: cordovaConf.version,
             validate: function(input) {
-                return /\d.\d.\d/.test(input) ? true : 'invalid version string for tizen platform';
+                return /\d.\d.\d/.test(input) ? true : 'invalid version string for firefoxos platform';
             }
         }, {
             type: 'input',
-            name: 'iconpath',
-            message: 'Icon path (default is \'img/logo.png\')',
-            default: 'img/logo.png',
+            name: 'icon16',
+            message: 'Icon path (default is \'logo.png\')',
+            default: 'logo.png',
             validate: function(input) {
                 return typeof(input) === 'string' ? true : 'invalid iconpath';
             }
         }, {
             type: 'input',
-            name: 'description',
-            message: 'Application Description',
-            default: utils.trim(cordovaConf.description)
+            name: 'icon48',
+            message: 'Icon path (default is \'logo.png\')',
+            default: 'logo.png',
+            validate: function(input) {
+                return typeof(input) === 'string' ? true : 'invalid iconpath';
+            }
+        },{
+            type: 'input',
+            name: 'icon60',
+            message: 'Icon path (default is \'logo.png\')',
+            default: 'logo.png',
+            validate: function(input) {
+                return typeof(input) === 'string' ? true : 'invalid iconpath';
+            }
+        },{
+            type: 'input',
+            name: 'icon128',
+            message: 'Icon path (default is \'logo.png\')',
+            default: 'logo.png',
+            validate: function(input) {
+                return typeof(input) === 'string' ? true : 'invalid iconpath';
+            }
+        },{
+            type: 'input',
+            name: 'developer_name',
+            message: 'What\'s the developer\'s name?',
+            default: cordovaConf.name,
+            validate: function(input) {
+                return /^[a-zA-Z\\s]+$/.test(input) ? true : 'invalid name for firefoxos platform'
+            }
+        },{
+            type: 'input',
+            name: 'developer_url',
+            message: 'What\'s the developer\'s url?',
+            default: cordovaConf.name,
+            validate: function(input) {
+                return /^[a-zA-Z_]+$/.test(input) ? true : 'invalid url for firefoxos platform'
+            }
         }];
         inquirer.prompt(ask, function(answers) {
             callback(answers);
@@ -186,23 +214,23 @@ function prepareDir(dir) {
     mkdirp.sync(dir);
 }
 
-function getManualTizenConfData(platformsData){
+function getManualFirefoxOSConfData(platformsData){
     var i,
-        manualTizenConfData = null;
+         manualFirefoxOSConfData = null;
     if (platformsData) {
         for (i=0; i < platformsData.length; i++) {
-            if (platformsData[i].$.name === 'sectv-tizen') {
+            if (platformsData[i].$.name === 'firefoxos') {
                 delete platformsData[i].$;
-                manualTizenConfData = utils.trim(js2xmlparser('platform',platformsData[i],{declaration : {include : false},attributeString : '$'}).replace(/<(\/?platform)>/igm,''));
+                 manualFirefoxOSConfData = utils.trim(platformsData[i]._);
             }
         }
     }
-    return manualTizenConfData;
+    return  manualFirefoxOSConfData;
 }
 
 module.exports = {
     prepare: function(successCallback, errorCallback, platformName, data) {
-        console.log('\nStart preparing codes for Samsung Tizen Platform......');
+        console.log('\nStart preparing codes for FireFox OS Platform......');
 
         // destination folder to paste necessary files for toast project
         var dest = data.dest || path.join('platforms', platformName, 'www');
@@ -223,16 +251,17 @@ module.exports = {
 
         // get data from userconf.json
         var userConfPath = path.join('platforms', 'userconf.json');
-        var userData = getValidTizenConfData(userConfPath);
+        var userData = getValidFirefoxOSConfData(userConfPath);
+	
 
         if(userData) {
-            // exist userconf for tizen
+            // exist userconf for firefox os
             confirmUseExistingData(userData, function (useExisting) {
                 if(useExisting) {
                     // if user select useExisting: Y
                     askUserData(cordovaConf, function (data) {
                         userData.version = data.version;
-                        userData.manualConfData = getManualTizenConfData(cordovaConf.platform);
+                        userData.manualConfData = getManualFirefoxOSConfData(cordovaConf.platform);
                         buildProject();
                     }, true, userData);
                 }
@@ -240,7 +269,7 @@ module.exports = {
                     // if user select useExisting: N
                     askUserData(cordovaConf, function (data) {
                         userData = data;
-                        userData.manualConfData = getManualTizenConfData(cordovaConf.platform);
+                        userData.manualConfData = getManualFirefoxOSConfData(cordovaConf.platform);
                         buildProject();
                     });
                 }
@@ -250,7 +279,7 @@ module.exports = {
             // not exist userconf for tizen
             askUserData(cordovaConf, function (data) {
                 userData = data;
-                userData.manualConfData = getManualTizenConfData(cordovaConf.platform);
+                userData.manualConfData = getManualFirefoxOSConfData(cordovaConf.platform);
                 buildProject();
             });
         }
@@ -310,10 +339,10 @@ module.exports = {
             var files = fs.readdirSync(dest);
             for(var i=0; i<files.length; i++) {
                 var fileName = files[i];
+		
                 if(fileName.match(/\.tmpl$/)) {
                     var tmplFilePath = path.join(dest, fileName);
                     var destFilePath = path.join(dest, fileName.replace(/\.tmpl$/, ''));
-		    console.log('ahmed test: '+destFilePath);
                     var template = fs.readFileSync(tmplFilePath, {
                         encoding: 'utf8'
                     });
@@ -322,6 +351,7 @@ module.exports = {
                     fs.writeFileSync(destFilePath, rendered, {
                         encoding: 'utf8'
                     });
+
                     shelljs.rm(path.join(dest, fileName));
                 }
             }
@@ -329,45 +359,8 @@ module.exports = {
         }
     },
     build: function(successCallback, errorCallback, data) {
-        console.log('\nStart packaging Samsung Tizen TV Platform......');
-        var www = data.www || path.join('platforms', 'sectv-tizen', 'www');
-        var dest = data.dest || path.join('platforms', 'sectv-tizen', 'build');
-        var TEMPORARY_BUILD_DIR = '.buildResult';
-
-        www = path.resolve(www);
-        dest = path.resolve(dest);
-        child.exec('tizen version', function(err, stdout, stderr) {
-            if(err) {
-                console.log(stderr);
-                throw Error('The command \"tizen\" failed. Make sure you have the latest Tizen SDK installed, and the \"tizen\" command (inside the tools/ide/bin folder) is added to your path.');
-            }
-            console.log(stdout);
-
-            // reference url : https://developer.tizen.org/development/tools/web-tools/command-line-interface#mw_package
-            var result = shelljs.exec('tizen cli-config "default.profiles.path=' + path.resolve(data.profilePath) + '"');
-            if(result.code) {
-                throw Error(result.output);
-            }
-            result = shelljs.exec('tizen build-web -out ' + TEMPORARY_BUILD_DIR + ' -- "' + path.resolve(www) + '"');
-            if(result.code) {
-                throw Error(result.output);
-            }
-            result = shelljs.exec('tizen package --type wgt --sign ' + data.profileName + ' -- ' + path.resolve(path.join(www, TEMPORARY_BUILD_DIR)));
-            if(result.code) {
-                throw Error(result.output);
-            }
-            else {
-                var packagePath = result.output.match(/Package File Location\:\s*(.*)/);
-                if(packagePath && packagePath[1]) {
-                    prepareDir(dest);
-                    shelljs.mv('-f', packagePath[1], path.resolve(dest));
-                    shelljs.rm('-rf', path.resolve(path.join(www, TEMPORARY_BUILD_DIR)));
-                    console.log('Package created at ' + path.join(dest, path.basename(packagePath[1])));
-                }
-                else {
-                    throw Error('Fail to retrieve Package File Location.');
-                }
-            }
-        });
+        console.log('\nStart packaging Firefox OS TV Platform......');
+	// TODO package later
+      	console.log('build is ready');
     }
 };
