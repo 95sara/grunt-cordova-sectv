@@ -22,8 +22,8 @@
     "shelljs": "^0.5.3",
     "xml2js": "^0.4.10",
     "js2xmlparser": "^1.0.0",
-    "zip-dir": "^1.0.0",
-    "mkdirp": "^0.5.1"
+    "zip-dir" : "^1.0.0",
+    "mkdirp" : "^0.5.1"
   },
   "devDependencies": {},
   "peerDependencies": {
